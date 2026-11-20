@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MW4 Recipe Book</title>
+<style>
+:root{--bg:#f3f4f1;--card:#fff;--ink:#16191a;--mute:#6b7378;--line:#d9dcd6;--acc:#5f7f1f;--accink:#fff;--warn:#b45309}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1112;--card:#171c1e;--ink:#e6ebe6;--mute:#8a9499;--line:#2a3236;--acc:#9bd23a;--accink:#10150a;--warn:#f0a73a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Rajdhani","Segoe UI",system-ui,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+header,.bar,.chips,.stats,main,.note,details{max-width:980px;margin-left:auto;margin-right:auto;padding-left:16px;padding-right:16px}
+header{padding-top:20px}
+h1{margin:0;font-size:28px;letter-spacing:.14em;text-transform:uppercase}h1 b{color:var(--acc)}
+.sub{color:var(--mute);margin:2px 0 0;font-size:13px}
+.bar{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+input,select,textarea,button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+#q{flex:1 1 200px;min-width:0}button{cursor:pointer}
+button.p{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
+.chips{margin-top:10px;display:flex;gap:6px;overflow-x:auto}
+.chip{white-space:nowrap;border-radius:99px;padding:5px 13px;font-size:13px}
+.chip.on{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
+.stats{margin-top:10px;color:var(--mute);font-size:13px}
+.prog{height:5px;background:var(--line);border-radius:9px;margin-top:6px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+details.g{margin-top:12px}
+details.g>summary{cursor:pointer;font-weight:700;color:var(--acc);letter-spacing:.06em;text-transform:uppercase}
+details.g ul{margin:8px 0 0;padding-left:20px;color:var(--ink)}details.g li{margin:4px 0}
+main{margin-top:12px;margin-bottom:30px;display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--t,var(--line));border-radius:10px;padding:13px 14px;display:flex;flex-direction:column;gap:7px}
+.card.own{opacity:.62}
+.top{display:flex;justify-content:space-between;gap:8px}
+.name{font-size:18px;font-weight:700;line-height:1.2}
+.tag{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
+.tier{font-size:11px;font-weight:700;color:var(--t);text-transform:uppercase;letter-spacing:.08em}
+.sec{font-size:13px}.sec b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc)}
+.sec.t{background:var(--bg);border-radius:6px;padding:6px 8px}
+.ing{display:flex;flex-wrap:wrap;gap:5px}
+.ing span{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:13px}
+.unk{color:var(--warn);font-size:13px}
+.act{display:flex;gap:6px;margin-top:auto;padding-top:4px}.act button{padding:5px 10px;font-size:13px}
+.empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px 0}
+dialog{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;width:min(480px,92vw);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+label{display:block;font-size:12px;color:var(--mute);margin:10px 0 3px;text-transform:uppercase;letter-spacing:.06em}
+dialog input,dialog select,dialog textarea{width:100%}
+.dact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.note{color:var(--mute);font-size:12px;padding-bottom:24px}
+</style>
+</head>
+<body>
+<header>
+  <h1>MW4 <b>Recipe</b> Book</h1>
+  <p class="sub">DMZ crafting, blueprints and grind routes</p>
+</header>
+<div class="bar">
+  <input id="q" type="search" placeholder="Search recipes, blueprints, tips…">
+  <select id="tierSel"><option value="">All tiers</option></select>
+  <button class="p" id="addBtn">+ Add</button>
+  <button id="ioBtn">Import / Export</button>
+</div>
+<div class="chips" id="chips"></div>
+<details class="g"><summary>Grind playbook</summary>
+<ul>
+<li>Put recipes and manuals in a backpack slot that is protected, so they survive a failed exfil.</li>
+<li>Open the 3D Printer in the FOB and track the ingredients you need. Loot spawns by location type, so head to places that match the item’s theme.</li>
+<li>Complete DMZ Orders. Some recipes, like the Large Backpack, are order rewards.</li>
+<li>Craft each owned weapon blueprint once for free at the Gunsmith, then run with it.</li>
+<li>Do loot-only runs first to stock ingredients, then fight-focused runs once you’re geared up.</li>
+</ul></details>
+<div class="stats"><span id="stat"></span><div class="prog"><i id="pg"></i></div></div>
+<main id="grid"></main>
+<p class="note">Starter entries come from public MW4 launch coverage. Ingredient lists, drop spots and exact blueprint sources can change with patches, so use Edit to add what you find in-game. Everything saves in your own browser.</p>
+
+<dialog id="dlg">
+  <h3 id="dt" style="margin:0">Recipe</h3>
+  <label>Name</label><input id="fName">
+  <label>Category</label><select id="fCat"></select>
+  <label>Tier</label><select id="fTier"></select>
+  <label>Where to find it</label><textarea id="fWhere" rows="2"></textarea>
+  <label>Where to get the blueprint</label><textarea id="fBp" rows="2"></textarea>
+  <label>Grind technique</label><textarea id="fTips" rows="2"></textarea>
+  <label>Ingredients (comma separated)</label><input id="fIng">
+  <div class="dact"><button id="cancel">Cancel</button><button class="p" id="save">Save</button></div>
+</dialog>
+
+<dialog id="io">
+  <h3 style="margin:0">Import / Export</h3>
+  <p class="sub">Copy this JSON to back up or share, or paste JSON and press Import.</p>
+  <textarea id="ioTxt" rows="9" style="font-family:monospace;font-size:12px"></textarea>
+  <div class="dact"><button id="ioClose">Close</button><button id="ioCopy">Copy</button><button class="p" id="ioGo">Import</button></div>
+</dialog>
+
+<script>
+const CATS=["Backpack","Weapon","Blueprint","Gear","Key","Consumable","Other"];
+const TIERS=["Common","Uncommon","Rare","Epic","Legendary","Unknown"];
+const TC={Common:"#8a9499",Uncommon:"#4caf50",Rare:"#2f8fe0",Epic:"#a45be0",Legendary:"#e0a21f",Unknown:"#8a9499"};
+const KEY="mw4-recipes-v2";
+const SEED=[
+{name:"Medium Backpack",cat:"Backpack",tier:"Unknown",where:"Unlocks when you reach DMZ Level 2 and the 3D Printer opens. Craft it at the 3D Printer in the FOB.",bp:"No blueprint needed. It is a starter recipe.",tips:"Craft it as soon as you hit DMZ Level 2, then use it for your first loot runs.",ing:""},
+{name:"Large Backpack",cat:"Backpack",tier:"Legendary",where:"Reward for completing one of the DMZ Orders, then craft it at the 3D Printer.",bp:"No blueprint needed. The Order gives you the recipe.",tips:"Check your Orders list and pick the one that fits the area you already like to run.",ing:""},
+{name:"Scavenger Backpack",cat:"Backpack",tier:"Unknown",where:"The recipe has to be found while playing DMZ. It is not a guaranteed unlock.",bp:"No blueprint needed. Look for the recipe item in raids.",tips:"Do loot-focused runs and keep any recipe in a protected slot so a failed exfil doesn’t lose it. Great for stocking printer ingredients.",ing:""},
+{name:"Parachute",cat:"Gear",tier:"Unknown",where:"Find one while looting in DMZ, or craft it at the 3D Printer. You don’t start with one equipped.",bp:"No blueprint needed.",tips:"Track the recipe’s ingredients in the FOB and visit location types that match their theme.",ing:""},
+{name:"Han 86 “Beta Forged”",cat:"Blueprint",tier:"Legendary",where:"Craft it at the Gunsmith in DMZ. One free craft per owned blueprint.",bp:"Earned from the Modern Warfare 4 beta.",tips:"Free legendary weapon every time you own a blueprint. Craft it before a run and keep your DMZ Cash.",ing:""},
+{name:"Mosin-Nagant “The Vet”",cat:"Blueprint",tier:"Unknown",where:"Craftable at the Gunsmith once you own it.",bp:"Prestige 1, Level 50 reward. Regular track is “The Vet”, Classic track is “The Vet Prime”.",tips:"Prestige in multiplayer and level to 50 to unlock it.",ing:""},
+{name:"Finn LMG “Terminal”",cat:"Blueprint",tier:"Unknown",where:"Craftable at the Gunsmith once you own it.",bp:"Prestige 4 reward. Regular track is “Terminal”, Classic track is “Torn Up”.",tips:"Long prestige climb, so stack XP across multiplayer and DMZ.",ing:""},
+{name:"M4 Assault Rifle blueprints",cat:"Blueprint",tier:"Unknown",where:"Craftable at the Gunsmith once you own it.",bp:"Prestige 8 reward.",tips:"This is a late prestige goal, so keep earning XP steadily.",ing:""},
+{name:"Store and Battle Pass blueprints",cat:"Blueprint",tier:"Unknown",where:"Any blueprint you own can be crafted at the Gunsmith in DMZ.",bp:"Buy in the Store or unlock in a seasonal Battle Pass. Owning one also makes the base weapon permanently available while leveling.",tips:"Vault Edition owners start with more blueprints, so check what you already own before spending.",ing:""}
+];
+let R=[],cat="All",editId=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function load(){try{const s=localStorage.getItem(KEY);if(s)R=JSON.parse(s)}catch(e){}
+ if(!Array.isArray(R)||!R.length){R=SEED.map((r,i)=>({...r,id:"s"+i,own:false}));persist()}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(R))}catch(e){}}
+function opts(el,arr,first){el.innerHTML=(first?`<option value="">${first}</option>`:"")+arr.map(a=>`<option>${a}</option>`).join("")}
+const sec=(l,v,c)=>v?`<div class="sec ${c||""}"><b>${l}</b>${esc(v)}</div>`:"";
+function render(){
+ const q=$("q").value.toLowerCase(),t=$("tierSel").value;
+ const list=R.filter(r=>(cat==="All"||r.cat===cat)&&(!t||r.tier===t)&&[r.name,r.where,r.bp,r.tips,r.ing].join(" ").toLowerCase().includes(q));
+ $("grid").innerHTML=list.length?list.map(r=>{
+  const ings=(r.ing||"").split(",").map(s=>s.trim()).filter(Boolean);
+  return `<div class="card ${r.own?"own":""}" style="--t:${TC[r.tier]}">
+  <div class="top"><div><div class="tag">${esc(r.cat)}</div><div class="name">${esc(r.name)}</div></div><div class="tier">${esc(r.tier)}</div></div>
+  ${sec("Where to find it",r.where)}${sec("Blueprint",r.bp)}${sec("Grind technique",r.tips,"t")}
+  ${ings.length?`<div class="ing">${ings.map(i=>`<span>${esc(i)}</span>`).join("")}</div>`:`<div class="unk">Ingredients not added yet</div>`}
+  <div class="act"><button data-a="own" data-i="${r.id}">${r.own?"✓ Done":"Mark done"}</button><button data-a="edit" data-i="${r.id}">Edit</button><button data-a="del" data-i="${r.id}">Delete</button></div></div>`}).join("")
+ :`<div class="empty">No matches. Try another filter or add one.</div>`;
+ const n=R.filter(r=>r.own).length;
+ $("stat").textContent=`${n} of ${R.length} done · showing ${list.length}`;
+ $("pg").style.width=(R.length?n/R.length*100:0)+"%";
+ $("chips").innerHTML=["All",...CATS].map(c=>`<button class="chip ${c===cat?"on":""}" data-c="${c}">${c}</button>`).join("");
+}
+function openEdit(id){editId=id;
+ const r=R.find(x=>x.id===id)||{name:"",cat:"Gear",tier:"Unknown",where:"",bp:"",tips:"",ing:""};
+ $("dt").textContent=id?"Edit recipe":"Add recipe";
+ $("fName").value=r.name;$("fCat").value=r.cat;$("fTier").value=r.tier;
+ $("fWhere").value=r.where||"";$("fBp").value=r.bp||"";$("fTips").value=r.tips||"";$("fIng").value=r.ing||"";
+ $("dlg").showModal()}
+$("grid").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+ const id=b.dataset.i,r=R.find(x=>x.id===id);
+ if(b.dataset.a==="own")r.own=!r.own;
+ else if(b.dataset.a==="edit")return openEdit(id);
+ else if(b.dataset.a==="del"){if(!confirm("Delete this entry?"))return;R=R.filter(x=>x.id!==id)}
+ persist();render()};
+$("chips").onclick=e=>{const b=e.target.closest("button");if(b){cat=b.dataset.c;render()}};
+$("q").oninput=render;$("tierSel").onchange=render;
+$("addBtn").onclick=()=>openEdit(null);$("cancel").onclick=()=>$("dlg").close();
+$("save").onclick=()=>{const name=$("fName").value.trim();if(!name){$("fName").focus();return}
+ const d={name,cat:$("fCat").value,tier:$("fTier").value,where:$("fWhere").value.trim(),bp:$("fBp").value.trim(),tips:$("fTips").value.trim(),ing:$("fIng").value.trim()};
+ if(editId)Object.assign(R.find(x=>x.id===editId),d);else R.unshift({...d,id:"u"+Date.now(),own:false});
+ persist();$("dlg").close();render()};
+$("ioBtn").onclick=()=>{$("ioTxt").value=JSON.stringify(R,null,1);$("io").showModal()};
+$("ioClose").onclick=()=>$("io").close();
+$("ioCopy").onclick=()=>{$("ioTxt").select();try{document.execCommand("copy")}catch(e){}};
+$("ioGo").onclick=()=>{try{const a=JSON.parse($("ioTxt").value);if(!Array.isArray(a))throw 0;
+ R=a.map((r,i)=>({id:r.id||"i"+Date.now()+i,name:String(r.name||"Unnamed"),cat:CATS.includes(r.cat)?r.cat:"Other",tier:TIERS.includes(r.tier)?r.tier:"Unknown",where:r.where||"",bp:r.bp||"",tips:r.tips||"",ing:r.ing||"",own:!!r.own}));
+ persist();$("io").close();render()}catch(e){alert("That isn’t valid recipe JSON.")}};
+opts($("fCat"),CATS);opts($("fTier"),TIERS);opts($("tierSel"),TIERS,"All tiers");
+load();render();
+</script>
+</body>
+  </html>
+  
